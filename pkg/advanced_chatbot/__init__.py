@@ -15,9 +15,14 @@ dotenv_path_example = Path(__file__).parent.parent / ".env"
 
 
 if dotenv_local_path.is_file():
+    print(dotenv_local_path)
     load_dotenv(dotenv_path=dotenv_local_path)
     print("Configuration Loaded from .env.local")
 
-else:
+elif dotenv_path_example.is_file():
+    print(dotenv_path_example)
     load_dotenv(dotenv_path=dotenv_path_example)
     print("Configuration Loaded from .env")
+else:
+    print("No .env file found")
+

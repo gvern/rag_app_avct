@@ -4,6 +4,7 @@ requirements = """
 llama-index==0.10.8
 streamlit
 python-dotenv
+langchain_community
 """
 
 setup(
@@ -12,7 +13,7 @@ setup(
     description="{description}",
     packages=find_packages(),
     install_requires=requirements,
-    python_requires='3.10.12',
+    python_requires='==3.10.12',
     include_package_data=True,
     scripts=[],
     zip_safe=False,
