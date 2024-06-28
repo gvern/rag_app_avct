@@ -4,7 +4,6 @@ requirements = """
 llama-index==0.10.8
 streamlit
 python-dotenv
-langchain_community
 """
 
 setup(
