@@ -6,24 +6,16 @@ from pathlib import Path
 import textwrap
 from datetime import datetime
 
-st.set_page_config(layout="wide")
+st.set_page_config(layout="wide", page_title="Système de Gestion de Documents Intelligents")
 st.title("Système de Gestion de Documents Intelligents")
 
-# Directory to store uploaded files and index configurations
+# Directory to store uploaded files
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
-CONFIG_FILE = Path("index_configs.json")
-
-def load_configs():
-    if CONFIG_FILE.exists():
-        with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_configs(configs):
-    with open(CONFIG_FILE, "w") as f:
-        json.dump(configs, f)
+# Directory to store index configurations
+INDEX_CONFIGS_DIR = Path("/workspaces/rag_app_avct/Files/rag_storage")
+INDEX_CONFIGS_DIR.mkdir(parents=True, exist_ok=True)
 
 def save_file(uploaded_file):
     file_path = UPLOAD_DIR / uploaded_file.name
@@ -36,7 +28,6 @@ def format_text(text):
 
 def handle_uploaded_files(files):
     index_ids = []
-    configs = load_configs()
     for uploaded_file in files:
         try:
             file_path = save_file(uploaded_file)
@@ -64,12 +55,12 @@ def handle_uploaded_files(files):
                 st.write(format_text(translation))
             
             # Save index configuration
-            configs[index_id] = {
-                "file_path": str(file_path),
+            index_config = {
+                "document_path": str(file_path),
                 "summary": summary,
                 "language": language
             }
-            save_configs(configs)
+            RagService.update_index_config(index_id, index_config)
 
         except Exception as e:
             st.error(f"Erreur lors du traitement de {uploaded_file.name}: {str(e)}")
@@ -94,10 +85,17 @@ if 'summaries' not in st.session_state:
 if 'translations' not in st.session_state:
     st.session_state.translations = {}
 
-# Load existing configs
-configs = load_configs()
-for index_id, config in configs.items():
-    st.session_state.summaries[index_id] = config["summary"]
+# Load existing index configurations
+existing_index_ids = []
+for index_config_file in INDEX_CONFIGS_DIR.glob('*/index_config.json'):
+    try:
+        index_id = index_config_file.parent.name
+        config = RagService.load_index_config(index_id)
+        st.session_state.summaries[index_id] = config["summary"]
+        st.session_state.translations[index_id] = config.get("translation", "")
+        existing_index_ids.append(index_id)
+    except Exception as e:
+        st.error(f"Erreur lors du chargement de la configuration de l'index {index_id}: {str(e)}")
 
 # Sidebar for session management
 st.sidebar.header("Gestion des Sessions")
@@ -188,7 +186,7 @@ if st.button('Envoyer') and question:
         st.subheader("Sources :")
         unique_sources = set()
         for source in source_nodes:
-            source_text = source.get_text().strip()
+            source_text = source.get_text().strip()  # Use strip instead of trim
             if source_text not in unique_sources:
                 st.write(format_text(source_text))
                 unique_sources.add(source_text)
