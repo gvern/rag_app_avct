@@ -134,7 +134,7 @@ class _RagService:
     
     
     
-    def create_vector_store_index(self,  document_path: str, persist=True)->Tuple[str, VectorStoreIndex]:
+    def create_vector_store_index(self,  document_path: Path, persist=True)->Tuple[str, VectorStoreIndex]:
         
         """
         Create a vector store index using a given document.
