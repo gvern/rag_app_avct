@@ -8,7 +8,7 @@ python-dotenv
 
 setup(
     name="advanced_chatbot",
-    author="NAME_OF_YOUR_GROUP",
+    author="Gustave Vernay",
     description="{description}",
     packages=find_packages(),
     install_requires=requirements,
