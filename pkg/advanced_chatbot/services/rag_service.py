@@ -102,7 +102,7 @@ class _RagService:
             self._embedding = MockEmbedding(embed_dim=1536)
         else:
             self._llm = OpenAI(api_key=OPENAI_API_KEY,model="gpt-3.5-turbo")
-            self._embedding = OpenAIEmbedding(api_key=OPENAI_API_KEY, model="text-embedding-ada-002")
+            self._embedding = OpenAIEmbedding(api_key=OPENAI_API_KEY, model="text-embedding-3-small")
         
 
         
