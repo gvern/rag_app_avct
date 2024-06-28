@@ -29,7 +29,7 @@
 A Singleton instance of `RagService` provides the following methods:
 
 ```python
-from advanced_chatbot.services.rag_services import RagService
+from advanced_chatbot.services.rag_service import RagService
 doc_path = "~/home/me/ai_chat/pkg/advanced_chatbot/data/livre_ux_digital_design_lab_1.pdf"
 
 # 1. Loading the document (Indexing/Ingestion)

@@ -12,7 +12,7 @@ setup(
     description="{description}",
     packages=find_packages(),
     install_requires=requirements,
-    python_requires='==3.10.12',
+    python_requires='==3.10.13',
     include_package_data=True,
     scripts=[],
     zip_safe=False,

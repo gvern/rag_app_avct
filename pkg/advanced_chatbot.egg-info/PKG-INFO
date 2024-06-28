@@ -1,0 +1,9 @@
+Metadata-Version: 2.1
+Name: advanced_chatbot
+Version: 0.0.0
+Summary: {description}
+Author: NAME_OF_YOUR_GROUP
+Requires-Python: ==3.10.13
+Requires-Dist: llama-index==0.10.8
+Requires-Dist: streamlit
+Requires-Dist: python-dotenv
