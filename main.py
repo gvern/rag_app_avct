@@ -145,13 +145,6 @@ for session_name in st.session_state.sessions.keys():
         st.session_state.translations = session_data["translations"]
         st.experimental_rerun()
 
-# Display past conversation if selected
-st.sidebar.subheader("Conversation courante :")
-if st.session_state.conversation_history:
-    for i, entry in enumerate(st.session_state.conversation_history):
-        role = "Utilisateur" if entry['role'] == 'user' else "Assistant"
-        st.sidebar.write(f"{role} ({i+1}): {entry['content']}")
-
 # Main UI Layout
 st.header("Téléchargement des Fichiers")
 uploaded_files = st.file_uploader("Choisissez des fichiers PDF ou DOCX", type=["pdf", "docx"], accept_multiple_files=True)
@@ -161,6 +154,15 @@ if uploaded_files:
     save_current_session()
 
 st.header("Chat Interactif")
+
+# Display past conversation if available
+if st.session_state.conversation_history:
+    st.subheader("Historique des Conversations")
+    for i, entry in enumerate(st.session_state.conversation_history):
+        role = "Utilisateur" if entry['role'] == 'user' else "Assistant"
+        with st.chat_message(role):
+            st.write(f"{entry['content']}")
+
 question = st.text_input("Posez une question sur les documents")
 if st.button('Envoyer') and question:
     try:
@@ -171,22 +173,24 @@ if st.button('Envoyer') and question:
             'role': 'user',
             'content': question
         })
+        with st.chat_message("Utilisateur"):
+            st.write(f"{question}")
+
         response_text = ""
         for response in response_generator:
             response_text += response + " "
-        
+
         st.session_state.conversation_history.append({
             'role': 'assistant',
             'content': response_text.strip()
         })
-        
-        st.subheader("Réponse :")
-        st.write(format_text(response_text.strip()))
-        
+        with st.chat_message("Assistant"):
+            st.write(format_text(response_text.strip()))
+
         st.subheader("Sources :")
         unique_sources = set()
         for source in source_nodes:
-            source_text = source.get_text().strip()  # Use strip instead of trim
+            source_text = source.get_text().strip()
             if source_text not in unique_sources:
                 st.write(format_text(source_text))
                 unique_sources.add(source_text)
