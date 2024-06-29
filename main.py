@@ -1,5 +1,6 @@
 import os
 import json
+import random
 import streamlit as st
 from pkg.advanced_chatbot.services.rag_service import RagService
 from pathlib import Path
@@ -38,11 +39,34 @@ def handle_uploaded_files(files):
             st.success(f"Document indexé avec l'ID : {index_id}")
             index_ids.append(index_id)
 
-            # Generate and display summary
-            summary = RagService.summarize_document_index(index_id)
-            st.session_state.summaries[index_id] = summary
+            # Add progress bar for summary generation
             st.write(f"Résumé pour {uploaded_file.name} :")
+            progress_bar = st.progress(0)
+            
+            # Step 1: Load the index
+            progress_bar.progress(20)
+            index = RagService.load_vector_store_index(index_id)
+            
+            # Step 2: Retrieve sources nodes
+            progress_bar.progress(40)
+            query = "__"
+            nodes = index.as_retriever(similarity_top_k=50).retrieve(query)
+            
+            # Step 3: Randomly select 20 sources
+            progress_bar.progress(60)
+            source_nodes = random.sample(nodes, 20)
+            
+            # Step 4: Prepare content for summarization
+            progress_bar.progress(80)
+            content = "\n".join([node.get_text() for node in source_nodes])
+            
+            # Step 5: Summarize content
+            summary = RagService.summarize_content(content)
+            st.session_state.summaries[index_id] = summary
+            progress_bar.progress(100)
+            
             st.write(format_text(summary))
+            progress_bar.empty()
 
             # Detect language
             language = RagService.detect_document_language(index_id)
@@ -126,7 +150,7 @@ def create_new_session():
         "summaries": {},
         "translations": {}
     }
-    st.experimental_rerun()
+    st.rerun()
 
 # Button to create a new session
 if st.sidebar.button("Créer une nouvelle session"):
@@ -143,11 +167,11 @@ for session_name in st.session_state.sessions.keys():
         st.session_state.conversation_history = session_data["conversation_history"]
         st.session_state.summaries = session_data["summaries"]
         st.session_state.translations = session_data["translations"]
-        st.experimental_rerun()
+        st.rerun()
 
 # Main UI Layout
 st.header("Téléchargement des Fichiers")
-uploaded_files = st.file_uploader("Choisissez des fichiers PDF ou DOCX", type=["pdf", "docx"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Choisissez des fichiers PDF ou DOCX", type=["pdf", "docx"], accept_multiple_files=True, key="file_uploader")
 
 if uploaded_files:
     st.session_state.index_ids = handle_uploaded_files(uploaded_files)
@@ -163,12 +187,11 @@ if st.session_state.conversation_history:
         with st.chat_message(role):
             st.write(f"{entry['content']}")
 
-question = st.text_input("Posez une question sur les documents")
+question = st.text_input("Posez une question sur les documents", key="question_input")
 if st.button('Envoyer') and question:
     try:
         response_generator, source_nodes = RagService.complete_chat(question, st.session_state.conversation_history, st.session_state.index_ids)
         
-        # Update conversation history
         st.session_state.conversation_history.append({
             'role': 'user',
             'content': question
